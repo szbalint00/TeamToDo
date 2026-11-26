@@ -2,50 +2,55 @@ package backend;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.table.AbstractTableModel;
 
 public class TasksData extends AbstractTableModel{
-	List<Task> tasks = new ArrayList<Task>();
+	private transient List<Task> tasks = new ArrayList<>();
 	
+	@Override
 	public int getRowCount() {
 		return tasks.size();
 	}
 
+	@Override
 	public int getColumnCount() {
 		return 3;
 	}
 
+	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		Task curr = tasks.get(rowIndex);
-		
-		switch (columnIndex) {
-		case 0: return curr.getIsDone();
-		case 1: return curr.getTaskName();
-		default: return curr.getComment();
-		}
+
+		return switch (columnIndex){
+			case 0 -> curr.getIsDone();
+			case 1 -> curr.getTaskName();
+			default -> curr.getComment();
+		};
 	}
 	
+	@Override
 	public String getColumnName(int col) {
-		switch(col) {
-		case 0: return "Status";
-		case 1: return "Task";
-		default: return "Comment";
-		}
+		return switch (col) {
+			case 0 -> "Status";
+			case 1 -> "Task";
+			default -> "Comment";
+		};
 	}
 	
+	@Override
 	public Class<?> getColumnClass(int col){
-		switch(col) {
-		case 0: return Boolean.class;
-		default: return String.class;
-		}
+		return switch (col) {
+			case 0 -> Boolean.class;
+			default -> String.class;
+		};
 	}
 	
+	@Override
 	public boolean isCellEditable(int row, int col) {
-		if (col == 0) return true;
-		return false;
+		return col == 0;
 	}
 	
+	@Override
 	public void setValueAt(Object value, int row, int column) {
         if(!isCellEditable(row, column)){
             return;

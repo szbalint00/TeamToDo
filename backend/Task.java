@@ -1,20 +1,20 @@
 package backend;
 
 public class Task {
-	private String taskName;
-	private String comment;
+	private final String taskName;
+	private final String comment;
+	private final int taskID;
 	private boolean isDone;
-	private int taskID;
 	
-	public Task(int NtaskID, boolean NisDone, String NtaskName, String Ncomment) {
-		taskName = NtaskName;
-		comment = Ncomment;
-		isDone = NisDone;
-		taskID = NtaskID;
+	public Task(int taskID, boolean isDone, String taskName, String comment) {
+		this.taskName = taskName;
+		this.comment = comment;
+		this.isDone = isDone;
+		this.taskID = taskID;
 	}
 	
-	public void setIsDone(boolean NisDone) {
-		isDone = NisDone;
+	public void setIsDone(boolean isDone) {
+		this.isDone = isDone;
 	}
 	
 	public String getTaskName() { return taskName; }
