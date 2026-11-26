@@ -105,7 +105,7 @@ public class StartScreen {
         LOGGER.log(Level.INFO, "Connecting to {0}...", dbName);
         frame.dispose();
         Workspace workspace = new Workspace(dbName);
-        workspace.Show();
+        workspace.show();
     }
 
 	public void show(){
