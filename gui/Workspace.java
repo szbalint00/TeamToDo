@@ -1,24 +1,20 @@
 package gui;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Image;
-import java.awt.Toolkit;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.sql.SQLException;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableRowSorter;
-
 import backend.DBManager;
 import backend.Group;
 import backend.GroupsData;
 import backend.Task;
 import backend.TasksData;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.sql.SQLException;
+import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 
 public class Workspace {
 	private final String ICON_PATH = "src/img/TTD_ICON.png";
@@ -78,7 +74,7 @@ public class Workspace {
 		frame = new JFrame();
 		frame.setTitle("Team To-Do (" + dbName + ")");
 		frame.setSize(1200, 800);
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		
 		ImageIcon icon = new ImageIcon(ICON_PATH);
 		Image iconImg = icon.getImage();

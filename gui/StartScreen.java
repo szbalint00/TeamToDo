@@ -31,7 +31,6 @@ public class StartScreen {
 		frame.getRootPane().setDefaultButton(connButton);
 		
 		frame.add(loginPanel, BorderLayout.NORTH);
-		frame.setVisible(true);
 	}
 
 	private void initFrame(){
@@ -108,4 +107,8 @@ public class StartScreen {
         Workspace workspace = new Workspace(dbName);
         workspace.Show();
     }
+
+	public void show(){
+		frame.setVisible(true);
+	}
 }
