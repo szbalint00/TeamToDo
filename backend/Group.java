@@ -1,13 +1,13 @@
 package backend;
 
 public class Group {
-	private String groupName;
-	private TasksData tasksData;
-	private int groupID;
+	private final String groupName;
+	private final TasksData tasksData;
+	private final int groupID;
 	
-	public Group(int NgroupID, String name) {
-		groupID = NgroupID;
-		groupName = name;
+	public Group(int groupID, String groupName) {
+		this.groupID = groupID;
+		this.groupName = groupName;
 		tasksData = new TasksData();
 	}
 	

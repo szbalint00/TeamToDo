@@ -31,7 +31,6 @@ public class StartScreen {
 		frame.getRootPane().setDefaultButton(connButton);
 		
 		frame.add(loginPanel, BorderLayout.NORTH);
-		frame.setVisible(true);
 	}
 
 	private void initFrame(){
@@ -106,6 +105,10 @@ public class StartScreen {
         LOGGER.log(Level.INFO, "Connecting to {0}...", dbName);
         frame.dispose();
         Workspace workspace = new Workspace(dbName);
-        workspace.Show();
+        workspace.show();
     }
+
+	public void show(){
+		frame.setVisible(true);
+	}
 }

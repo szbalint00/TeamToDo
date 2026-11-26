@@ -1,58 +1,49 @@
 package gui;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Image;
-import java.awt.Toolkit;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.sql.SQLException;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableRowSorter;
-
 import backend.DBManager;
 import backend.Group;
 import backend.GroupsData;
 import backend.Task;
 import backend.TasksData;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 
 public class Workspace {
-	private final String ICON_PATH = "src/img/TTD_ICON.png";
-	private final String DB_ICON_PATH = "src/img/DB_ICON.png";
-	private final String CONN_ICON_PATH  = "src/img/CONN_ICON.png";
-	private final String SAVE_ICON_PATH = "src/img/SAVE_ICON.png";
-	private final String RELOAD_ICON_PATH = "src/img/RELOAD_ICON.png";
+	private static final Logger LOGGER = Logger.getLogger(Workspace.class.getName());
+
+	private static final String ICON_PATH = "/img/TTD_ICON.png";
+	private static final String DB_ICON_PATH = "/img/DB_ICON.png";
+	private static final String CONN_ICON_PATH  = "/img/CONN_ICON.png";
+	private static final String SAVE_ICON_PATH = "/img/SAVE_ICON.png";
+	private static final String RELOAD_ICON_PATH = "/img/RELOAD_ICON.png";
 	
 	private JFrame frame;
 	
 	private JMenuBar menubar;
-	private JMenu dbMenu;
-	private JMenuItem saveMenuItem;
-	private JMenuItem reloadMenuItem;
-	private JMenuItem connMenuItem;
 	
 	private JPanel groupsPanel;
-	private JScrollPane groupScrollPane; 
 	private JTable groupTable;
 	private JPanel tasksPanel;
 	private JSplitPane splitPane;
 	
-	private JPanel groupInsPanel;
-	private JLabel groupInsLabel;
 	private JTextField groupInsTxt;
-	private JButton groupInsButton;
 	
-	private JScrollPane tasksScrollPane;
 	private JTable tasksTable;
 	
-	private DefaultTableCellRenderer centerRenderer;
+	private final DefaultTableCellRenderer centerRenderer;
 	
-	private String dbName;
-	private DBManager dbmanager;
+	private final String dbName;
+	private final DBManager dbmanager;
 	private GroupsData data;
 	private TasksData currTasksData = null;
 	private int currSelTask;
@@ -78,9 +69,9 @@ public class Workspace {
 		frame = new JFrame();
 		frame.setTitle("Team To-Do (" + dbName + ")");
 		frame.setSize(1200, 800);
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		
-		ImageIcon icon = new ImageIcon(ICON_PATH);
+		ImageIcon icon = new ImageIcon(getClass().getResource(ICON_PATH));
 		Image iconImg = icon.getImage();
 		
 		frame.setIconImage(iconImg);
@@ -94,32 +85,32 @@ public class Workspace {
 	}
 	
 	private void initMenu() {
-		ImageIcon dbIcon = new ImageIcon(DB_ICON_PATH);
+		ImageIcon dbIcon = new ImageIcon(getClass().getResource(DB_ICON_PATH));
         Image scaledDbIconImg = dbIcon.getImage().getScaledInstance(20, -1, Image.SCALE_SMOOTH);
 		ImageIcon scaledDbIcon = new ImageIcon(scaledDbIconImg);
         
-        ImageIcon connIcon = new ImageIcon(CONN_ICON_PATH);
+        ImageIcon connIcon = new ImageIcon(getClass().getResource(CONN_ICON_PATH));
         Image scaledConnIconImg = connIcon.getImage().getScaledInstance(20, -1, Image.SCALE_SMOOTH);
 		ImageIcon scaledConnIcon = new ImageIcon(scaledConnIconImg);
 		
-		ImageIcon saveIcon = new ImageIcon(SAVE_ICON_PATH);
+		ImageIcon saveIcon = new ImageIcon(getClass().getResource(SAVE_ICON_PATH));
         Image scaledSaveIconImg = saveIcon.getImage().getScaledInstance(20, -1, Image.SCALE_SMOOTH);
 		ImageIcon scaledSaveIcon = new ImageIcon(scaledSaveIconImg);
 		
-		ImageIcon reloadIcon = new ImageIcon(RELOAD_ICON_PATH);
+		ImageIcon reloadIcon = new ImageIcon(getClass().getResource(RELOAD_ICON_PATH));
         Image scaledReloadIconImg = reloadIcon.getImage().getScaledInstance(20, -1, Image.SCALE_SMOOTH);
 		ImageIcon scaledReloadIcon = new ImageIcon(scaledReloadIconImg);
         
         menubar = new JMenuBar();
-        dbMenu = new JMenu("  Database  ");
+        JMenu dbMenu = new JMenu("  Database  ");
         dbMenu.setIcon(scaledDbIcon);
-        saveMenuItem = new JMenuItem("    Save  ");
+        JMenuItem saveMenuItem = new JMenuItem("    Save  ");
         saveMenuItem.setIcon(scaledSaveIcon);
         saveMenuItem.addActionListener(e -> saveToDB());
-        reloadMenuItem = new JMenuItem("  Reload  ");
+        JMenuItem reloadMenuItem = new JMenuItem("  Reload  ");
         reloadMenuItem.setIcon(scaledReloadIcon);
         reloadMenuItem.addActionListener(e -> reloadDB());
-        connMenuItem = new JMenuItem("  Connect ");
+        JMenuItem connMenuItem = new JMenuItem("  Connect ");
         connMenuItem.setIcon(scaledConnIcon);
         connMenuItem.addActionListener(e -> connect());
         
@@ -138,13 +129,13 @@ public class Workspace {
 	}
 	
 	private void initGroups() {
-		groupInsLabel = new JLabel("New Group: ");
+		JLabel groupInsLabel = new JLabel("New Group: ");
         groupInsTxt = new JTextField(10);
-        groupInsButton = new JButton("Add");
+        JButton groupInsButton = new JButton("Add");
         groupInsButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, groupInsButton.getPreferredSize().height));
         groupInsButton.addActionListener(e -> addGroup());
         
-        groupInsPanel = new JPanel();
+        JPanel groupInsPanel = new JPanel();
         groupInsPanel.setLayout(new BoxLayout(groupInsPanel, BoxLayout.Y_AXIS));
         groupInsPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         
@@ -152,20 +143,13 @@ public class Workspace {
         groupTable = new JTable();
         groupTable.setFillsViewportHeight(true);
         groupTable.setModel(data);
-        groupTable.addMouseListener(new MouseAdapter() {
-        	public void mouseClicked(MouseEvent me) {
-        		if (me.getClickCount() == 1) {
-					currSelTask = groupTable.getSelectedRow();
-					initTasks();
-        		}
-            }
-         });
+        groupTable.addMouseListener(new MouseClicks());
         groupTable.setRowHeight(30);
 		centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
 		centerRenderer.setVerticalAlignment(SwingConstants.CENTER);
 		groupTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
         
-        groupScrollPane = new JScrollPane(groupTable);
+        JScrollPane groupScrollPane = new JScrollPane(groupTable);
 
         JPanel groupInsTextWrap = new JPanel();
         groupInsTextWrap.add(groupInsLabel);
@@ -181,48 +165,45 @@ public class Workspace {
         
         try {
         	data.initGroups(dbmanager);
-        } catch (SQLException e1) {
-        	e1.printStackTrace();
+        } catch (SQLException e) {
+			LOGGER.log(Level.SEVERE, "SQL Exception", e);
         }
 	}
 	
 	private void initTasks() {
-		if(currSelTask == -1) {
+		currTasksData = new TasksData();
+		tasksTable = new JTable();
+		tasksTable.setFillsViewportHeight(true);
+		tasksTable.setRowHeight(20);
+		tasksTable.addMouseListener(new MouseClicks());
+
+		JScrollPane tasksScrollPane = new JScrollPane(tasksTable);
+		tasksPanel.add(tasksScrollPane, BorderLayout.CENTER);
+
+		updateTasksTable();
+	}
+
+	private void updateTasksTable() {
+		if (currSelTask == -1) {
 			currTasksData = new TasksData();
-			tasksTable = new JTable();
-			tasksScrollPane = new JScrollPane(tasksTable);
+		} else {
+			currTasksData = data.selectGroup(currSelTask).getData();
 		}
-		else currTasksData = data.selectGroup(currSelTask).getData();
-		
-        
-        tasksTable.setFillsViewportHeight(true);
-        tasksTable.setModel(currTasksData);
-        tasksTable.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent me) {
-               if (me.getClickCount() == 2) {
-                  JTable target = (JTable)me.getSource();
-                  int row = target.getSelectedRow();
-                  int column = target.getSelectedColumn();
-                  JOptionPane.showMessageDialog(null, tasksTable.getValueAt(row, column));
-               }
-            }
-         });
-        tasksTable.setRowHeight(20);
-        tasksTable.getColumnModel().getColumn(0).setMaxWidth(70);
-        tasksTable.getColumnModel().getColumn(0).setPreferredWidth(60);
-        tasksTable.getColumnModel().getColumn(1).setPreferredWidth(100);
+
+		tasksTable.setModel(currTasksData);
+		tasksTable.getColumnModel().getColumn(0).setMaxWidth(70);
+		tasksTable.getColumnModel().getColumn(0).setPreferredWidth(60);
+		tasksTable.getColumnModel().getColumn(1).setPreferredWidth(100);
 		tasksTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
 		tasksTable.getColumnModel().getColumn(2).setPreferredWidth(500);
-		
-		tasksPanel.add(tasksScrollPane);
 	}
 	
-	public void Show() {
+	public void show() {
 		frame.setVisible(true);
 	}
 	
 	public void saveToDB() {
-		System.out.println("Saving data to " + dbName + "...");
+		LOGGER.log(Level.INFO, "Saving data to {0}...", dbName);
 		
 		for(int i=0;i<data.getRowCount();i++) {
 			try {
@@ -236,39 +217,64 @@ public class Workspace {
 				}
 				
 			} catch (SQLException e) {
-				e.printStackTrace();
+				LOGGER.log(Level.SEVERE, "SQL Exception", e);
 			}
 		}
 		
-		System.out.println("Data saved to " + dbName + "!");
+		LOGGER.log(Level.INFO, "Data saved to {0}!", dbName);
 	}
 	
 	private void reloadDB() {
 		try {
         	data.initGroups(dbmanager);
-        	initTasks();
-        } catch (SQLException e1) {
-        	e1.printStackTrace();
+        	updateTasksTable();
+        } catch (SQLException e) {
+        	LOGGER.log(Level.SEVERE, "SQL Exception", e);
         }
 	}
 	
 	public void connect() {
-		new StartScreen();
+		StartScreen app = new StartScreen();
+		app.show();
 	}
 	
 	private void addGroup() {
 		String gName = groupInsTxt.getText();
 		
 		if(gName.isEmpty()) {
-			//NINCS NAME
+			JOptionPane.showMessageDialog(null, "Group name cannot be empty!");
 			return;
 		}
 		
 		try {
 			data.addGroup(dbmanager.insertNewGroup(gName));
 		} catch (SQLException e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, "SQL Exception", e);
 		}
+	}
+
+	private class MouseClicks implements MouseListener{
+		@Override
+		public void mouseClicked(MouseEvent e){
+			if(e.getSource() == tasksTable && e.getClickCount() == 2){
+				int row = tasksTable.getSelectedRow();
+				int column = tasksTable.getSelectedColumn();
+				JOptionPane.showMessageDialog(null, tasksTable.getValueAt(row, column));
+			}
+			else if (e.getSource() == groupTable && e.getClickCount() == 1) {
+				currSelTask = groupTable.getSelectedRow();
+				updateTasksTable();
+        	}
+		}
+
+        @Override
+        public void mousePressed(MouseEvent e) { /* Don't need */}
+        @Override
+        public void mouseReleased(MouseEvent e) { /* Don't need */}
+        @Override
+        public void mouseEntered(MouseEvent e) { /* Don't need */}
+        @Override
+        public void mouseExited(MouseEvent e) { /* Don't need */}
 	}
 	
 }
