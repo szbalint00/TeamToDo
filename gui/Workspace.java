@@ -21,11 +21,11 @@ import javax.swing.table.DefaultTableCellRenderer;
 public class Workspace {
 	private static final Logger LOGGER = Logger.getLogger(Workspace.class.getName());
 
-	private static final String ICON_PATH = "src/img/TTD_ICON.png";
-	private static final String DB_ICON_PATH = "src/img/DB_ICON.png";
-	private static final String CONN_ICON_PATH  = "src/img/CONN_ICON.png";
-	private static final String SAVE_ICON_PATH = "src/img/SAVE_ICON.png";
-	private static final String RELOAD_ICON_PATH = "src/img/RELOAD_ICON.png";
+	private static final String ICON_PATH = "/img/TTD_ICON.png";
+	private static final String DB_ICON_PATH = "/img/DB_ICON.png";
+	private static final String CONN_ICON_PATH  = "/img/CONN_ICON.png";
+	private static final String SAVE_ICON_PATH = "/img/SAVE_ICON.png";
+	private static final String RELOAD_ICON_PATH = "/img/RELOAD_ICON.png";
 	
 	private JFrame frame;
 	
@@ -227,7 +227,7 @@ public class Workspace {
 	private void reloadDB() {
 		try {
         	data.initGroups(dbmanager);
-        	initTasks();
+        	updateTasksTable();
         } catch (SQLException e) {
         	LOGGER.log(Level.SEVERE, "SQL Exception", e);
         }

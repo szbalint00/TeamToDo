@@ -1,15 +1,19 @@
 package backend;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DBManager {
-	private String dbName;
-	private String url;
+	private static final Logger LOGGER = Logger.getLogger(DBManager.class.getName());
+
+	private final String dbName;
+	private final String url;
 	
 	public DBManager(String rawDbName) {
 		this.dbName = rawDbName.trim().replaceAll("[^a-zA-Z0-9_-]", "_");
@@ -20,17 +24,17 @@ public class DBManager {
         try {
 			Files.createDirectories(Paths.get("dbs"));
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, "IO Exception", e);
 		}
 
         this.url = "jdbc:sqlite:dbs/" + this.dbName + ".db";
         
-        System.out.println("DB: Connected to " + dbName + " (" + url + ")");
+		LOGGER.log(Level.INFO, "DB: Connected to {0} ({1})", new Object[]{dbName, url});
         
         try {
 			initTables();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			LOGGER.log(Level.SEVERE, "SQL Exception", e);
 		}
         
 	}
@@ -43,24 +47,22 @@ public class DBManager {
 	    return conn;
 	}
 
-	public void initTables() throws SQLException {
+	private void initTables() throws SQLException {
 	    String createCsoportSql = """
-	        CREATE TABLE IF NOT EXISTS Csoport (
-	            csoport_id INTEGER PRIMARY KEY AUTOINCREMENT,
-	            csoport_nev VARCHAR(30) NOT NULL
-	        );
-	        """;
+		CREATE TABLE IF NOT EXISTS Csoport (csoport_id INTEGER PRIMARY KEY AUTOINCREMENT,csoport_nev VARCHAR(30) NOT NULL);
+		""";
 
 	    String createFeladatokSql = """
-	        CREATE TABLE IF NOT EXISTS Feladatok (
-	            feladat_id INTEGER PRIMARY KEY AUTOINCREMENT,
-	            csoport_id INTEGER NOT NULL,
-	            feladat_nev VARCHAR(30) NOT NULL,
-	            feladat_megj VARCHAR(300),
-	            feladat_teljesitve INTEGER NOT NULL DEFAULT 0 CHECK (feladat_teljesitve IN (0, 1)),
-	            FOREIGN KEY (csoport_id) REFERENCES Csoport(csoport_id) ON DELETE CASCADE
-	        );
-	        """;
+		CREATE TABLE IF NOT EXISTS Feladatok (
+		feladat_id INTEGER PRIMARY KEY AUTOINCREMENT,
+		csoport_id INTEGER NOT NULL,
+		feladat_nev VARCHAR(30) NOT NULL,
+		feladat_megj VARCHAR(300),
+		feladat_teljesitve INTEGER NOT NULL DEFAULT 0 CHECK (
+		feladat_teljesitve IN (0, 1)),
+		FOREIGN KEY (csoport_id) REFERENCES Csoport(csoport_id) ON DELETE CASCADE
+		);
+		""";
 
 	    try (Connection conn = connect();
 	         Statement stmt = conn.createStatement()) {
@@ -68,25 +70,25 @@ public class DBManager {
 	        stmt.execute(createFeladatokSql);
 	    }
 	    
-	    System.out.println("DB: Table init completed");
+		LOGGER.log(Level.INFO, "DB: Table init completed");
 	}
 	
 	public Group insertNewGroup(String gName) throws SQLException {
 		Connection conn = connect();
 				
 		String sql = "INSERT INTO Csoport(csoport_nev) VALUES (?)";
-		PreparedStatement pstmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+		PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 		pstmt.setString(1, gName);
 		int rows = pstmt.executeUpdate();
 		if(rows == 0) {
-			System.out.println("Insert failed...");
+			LOGGER.log(Level.WARNING, "Insert failed...");
 			return null;
 		}
 		ResultSet rs = pstmt.getGeneratedKeys();
 		rs.next();
 		int gID = rs.getInt(1);
 		
-		System.out.println("DB: New Group - " + gName + " (" + gID + ")");
+		LOGGER.log(Level.INFO, "DB: New Group - {0} ({1})", new Object[]{gName, gID});
 		
 		return new Group(gID, gName);
 	}
@@ -94,12 +96,12 @@ public class DBManager {
 	public List<Group> getGroups() throws SQLException{
 		Connection conn = connect();
 		
-		String sql = "SELECT * FROM Csoport WHERE 1";
+		String sql = "SELECT csoport_id, csoport_nev FROM Csoport WHERE 1";
 		
 		PreparedStatement pstmt = conn.prepareStatement(sql);
 		ResultSet rs = pstmt.executeQuery();
 		
-		List<Group> groups = new ArrayList<Group>();
+		List<Group> groups = new ArrayList<>();
 		
 		
 		while(rs.next()) {
@@ -119,39 +121,39 @@ public class DBManager {
 		Connection conn = connect();
 				
 		String sql = "INSERT INTO Feladatok(csoport_id, feladat_nev, feladat_megj, feladat_teljesitve) VALUES (?,?,?,?)";
-		PreparedStatement pstmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+		PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 		pstmt.setInt(1, gID);
 		pstmt.setString(2, tName);
 		pstmt.setString(3,  tComment);
 		pstmt.setBoolean(4, tIsDone);
 		int rows = pstmt.executeUpdate();
 		if(rows == 0) {
-			System.out.println("Insert failed...");
+			LOGGER.log(Level.WARNING, "Insert failed...");
 			return null;
 		}
 		ResultSet rs = pstmt.getGeneratedKeys();
 		rs.next();
 		int tID = rs.getInt(1);
 		
-		System.out.println("DB: New Task - " + tName + " (" + tID + ")");
+		LOGGER.log(Level.INFO, "DB: New Task - {0} ({1})", new Object[]{tName, tID});
 		
 		return new Task(tID, tIsDone, tName, tComment);
 	}
 	
 	public List<Task> getTasks(int gID) throws SQLException{
 		Connection conn = connect();
-		String sql = "SELECT * FROM Feladatok WHERE csoport_id = ?";
+		String sql = "SELECT feladat_id, feladat_nev, feladat_megj, feladat_teljesitve FROM Feladatok WHERE csoport_id = ?";
 		PreparedStatement pstmt = conn.prepareStatement(sql);
 		pstmt.setInt(1, gID);
 		ResultSet rs = pstmt.executeQuery();
 		
-		List<Task> tasks = new ArrayList<Task>();
+		List<Task> tasks = new ArrayList<>();
 		
 		while(rs.next()) {
 			int taskID = rs.getInt(1);
-            String taskName = rs.getString(3);
-            String taskComment = rs.getString(4);
-            boolean taskIsDone = rs.getBoolean(5);
+            String taskName = rs.getString(2);
+            String taskComment = rs.getString(3);
+            boolean taskIsDone = rs.getBoolean(4);
             
             tasks.add(new Task(taskID, taskIsDone, taskName, taskComment));
 		}
@@ -172,11 +174,11 @@ public class DBManager {
 		int rows = pstmt.executeUpdate();
 		
 		if(rows == 0) {
-			System.out.println("DB: TASK_" + t.getTaskID() + " not updated.");
+			LOGGER.log(Level.WARNING, "DB: TASK_{0} not updated.", t.getTaskID());
 			return;
 		}
 		
-		System.out.println("DB: TASK_" + t.getTaskID() + " updated.");
+		LOGGER.log(Level.INFO, "DB: TASK_{0} updated.", t.getTaskID());
 	}
 	
 	public void updateGroup(Group g) throws SQLException {
@@ -190,10 +192,10 @@ public class DBManager {
 		int rows = pstmt.executeUpdate();
 		
 		if(rows == 0) {
-			System.out.println("DB: GROUP_" + g.getGroupID() + " not updated.");
+			LOGGER.log(Level.WARNING, "DB: GROUP_{0} not updated.", g.getGroupID());
 			return;
 		}
 		
-		System.out.println("DB: GROUP_" + g.getGroupID() + " updated.");
+		LOGGER.log(Level.INFO, "DB: GROUP_{0} updated.", g.getGroupID());
 	}
 }
