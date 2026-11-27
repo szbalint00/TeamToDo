@@ -39,6 +39,8 @@ public class Workspace {
 	private JTextField groupInsTxt;
 	
 	private JTable tasksTable;
+	private JTextField taskInsNameTxt;
+	private JTextField taskInsCommentTxt;
 	
 	private final DefaultTableCellRenderer centerRenderer;
 	
@@ -46,11 +48,11 @@ public class Workspace {
 	private final DBManager dbmanager;
 	private GroupsData data;
 	private TasksData currTasksData = null;
-	private int currSelTask;
+	private int currGroupIDX;
 	
 	
 	public Workspace(String dbName) {
-		currSelTask = -1;
+		currGroupIDX = -1;
 		this.dbName = dbName;
 		dbmanager = new DBManager(dbName);
 		centerRenderer = new DefaultTableCellRenderer();
@@ -180,14 +182,33 @@ public class Workspace {
 		JScrollPane tasksScrollPane = new JScrollPane(tasksTable);
 		tasksPanel.add(tasksScrollPane, BorderLayout.CENTER);
 
+		JPanel taskInsPanel = new JPanel();
+
+		taskInsNameTxt = new JTextField(20);
+		taskInsCommentTxt = new JTextField(40);
+
+		JLabel taskNameLabel = new JLabel("New Task Name: ");
+		JLabel taskCommentLabel = new JLabel("Comment: ");
+
+		JButton taskInsButton = new JButton("Add");
+		taskInsButton.addActionListener(e -> addTask());
+
+		taskInsPanel.add(taskNameLabel);
+		taskInsPanel.add(taskInsNameTxt);
+		taskInsPanel.add(taskCommentLabel);
+		taskInsPanel.add(taskInsCommentTxt);
+		taskInsPanel.add(taskInsButton);
+
+		tasksPanel.add(taskInsPanel, BorderLayout.SOUTH);
+
 		updateTasksTable();
 	}
 
 	private void updateTasksTable() {
-		if (currSelTask == -1) {
+		if (currGroupIDX == -1) {
 			currTasksData = new TasksData();
 		} else {
-			currTasksData = data.selectGroup(currSelTask).getData();
+			currTasksData = data.selectGroup(currGroupIDX).getData();
 		}
 
 		tasksTable.setModel(currTasksData);
@@ -253,16 +274,42 @@ public class Workspace {
 		}
 	}
 
+	private void addTask(){
+		int gID = data.selectGroup(currGroupIDX).getGroupID();
+		String tName = taskInsNameTxt.getText();
+		String tComm = taskInsCommentTxt.getText();
+
+		try {
+			Task t = dbmanager.insertNewTask(gID, false, tName, tComm);
+			data.selectGroup(currGroupIDX).getData().addTask(t);
+		}
+		catch (SQLException e){
+			LOGGER.log(Level.SEVERE, "SQL Exception",e);
+		}
+	}
+
 	private class MouseClicks implements MouseListener{
 		@Override
 		public void mouseClicked(MouseEvent e){
 			if(e.getSource() == tasksTable && e.getClickCount() == 2){
+				// DELETE ?
 				int row = tasksTable.getSelectedRow();
-				int column = tasksTable.getSelectedColumn();
-				JOptionPane.showMessageDialog(null, tasksTable.getValueAt(row, column));
+				int tID = currTasksData.selectTask(row).getTaskID();
+				String title = "Delete Task (TASK: " + tID + ")";
+				String message = "Would you like to delete this task? \nName:\n" + tasksTable.getValueAt(row,1) + "\nComment:\n" + tasksTable.getValueAt(row,2);
+				int choice = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION);
+				if(choice == JOptionPane.YES_OPTION){
+					try {
+						dbmanager.deleteTask(tID);
+						reloadDB();
+					} catch (SQLException sqlE) {
+						LOGGER.log(Level.SEVERE, "SQL Exception", sqlE);
+					}
+				}
 			}
 			else if (e.getSource() == groupTable && e.getClickCount() == 1) {
-				currSelTask = groupTable.getSelectedRow();
+				currGroupIDX = groupTable.getSelectedRow();
+				frame.setTitle("Team To-Do (" + dbName + ": " + data.selectGroup(currGroupIDX).getGroupName() + ")");
 				updateTasksTable();
         	}
 		}
@@ -276,5 +323,4 @@ public class Workspace {
         @Override
         public void mouseExited(MouseEvent e) { /* Don't need */}
 	}
-	
 }
