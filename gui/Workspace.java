@@ -292,12 +292,24 @@ public class Workspace {
 		@Override
 		public void mouseClicked(MouseEvent e){
 			if(e.getSource() == tasksTable && e.getClickCount() == 2){
+				// DELETE ?
 				int row = tasksTable.getSelectedRow();
-				int column = tasksTable.getSelectedColumn();
-				JOptionPane.showMessageDialog(null, tasksTable.getValueAt(row, column));
+				int tID = currTasksData.selectTask(row).getTaskID();
+				String title = "Delete Task (TASK: " + tID + ")";
+				String message = "Would you like to delete this task? \nName:\n" + tasksTable.getValueAt(row,1) + "\nComment:\n" + tasksTable.getValueAt(row,2);
+				int choice = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION);
+				if(choice == JOptionPane.YES_OPTION){
+					try {
+						dbmanager.deleteTask(tID);
+						reloadDB();
+					} catch (SQLException sqlE) {
+						LOGGER.log(Level.SEVERE, "SQL Exception", sqlE);
+					}
+				}
 			}
 			else if (e.getSource() == groupTable && e.getClickCount() == 1) {
 				currGroupIDX = groupTable.getSelectedRow();
+				frame.setTitle("Team To-Do (" + dbName + ": " + data.selectGroup(currGroupIDX).getGroupName() + ")");
 				updateTasksTable();
         	}
 		}

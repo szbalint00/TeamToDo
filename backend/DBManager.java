@@ -198,4 +198,21 @@ public class DBManager {
 		
 		LOGGER.log(Level.INFO, "DB: GROUP_{0} updated.", g.getGroupID());
 	}
+
+	public void deleteTask(int tID) throws SQLException{
+		Connection conn = connect();
+		
+		String sql = "DELETE FROM Feladatok WHERE feladat_id = ?";
+		PreparedStatement pstmt = conn.prepareStatement(sql);
+		pstmt.setInt(1,  tID);
+		
+		int rows = pstmt.executeUpdate();
+		
+		if(rows == 0) {
+			LOGGER.log(Level.WARNING, "DB: TASK_{0} not deleted.", tID);
+			return;
+		}
+		
+		LOGGER.log(Level.INFO, "DB: TASK_{0} deleted.", tID);
+	}
 }

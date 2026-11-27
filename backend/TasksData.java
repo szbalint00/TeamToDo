@@ -74,5 +74,4 @@ public class TasksData extends AbstractTableModel{
 	public Task selectTask(int idx) {
 		return tasks.get(idx);
 	}
-
 }
